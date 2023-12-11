@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap');
+
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+.animated-svg {
+    margin: 10rem;
+    animation-name: bounce;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    transform-origin: bottom;
+    position: relative;
+    z-index: 99;
+}
+
+@keyframes bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+        scale: 2;
+    }
+    50% {
+        transform: translateY(10px);
+    }
+}

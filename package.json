@@ -1,0 +1,82 @@
+{
+  "name": "financasemdia",
+  "version": "1.1.0",
+  "description": "Empoderando Sonhos, Capacitando Futuros: Seu Caminho para o Sucesso Financeiro com Nosso Sistema de Gestão de Microcrédito.",
+  "repository": "https://github.com/creativetimofficial/notus-nextjs",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "next start",
+    "build": "next build",
+    "dev": "next dev",
+    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm run build:tailwind && npm run dev",
+    "build:tailwind": "tailwind build styles/index.css -o styles/tailwind.css"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@fortawesome/fontawesome-free": "5.15.3",
+    "@mui/icons-material": "^5.14.6",
+    "@mui/material": "^5.14.7",
+    "@mui/styled-engine-sc": "^5.14.7",
+    "@mui/styles": "^5.14.6",
+    "@mui/x-data-grid": "^6.12.1",
+    "@mui/x-date-pickers": "^6.12.1",
+    "@popperjs/core": "2.9.1",
+    "@reduxjs/toolkit": "^1.9.5",
+    "@tailwindcss/forms": "0.2.1",
+    "@types/dompurify": "^3.0.2",
+    "@types/react-datepicker": "^4.15.0",
+    "@types/react-redux": "^7.1.26",
+    "@types/redux-logger": "^3.0.9",
+    "axios": "^1.5.0",
+    "chart.js": "2.9.4",
+    "dayjs": "^1.11.9",
+    "dompurify": "^3.0.5",
+    "gulp": "3.9.1",
+    "gulp-append-prepend": "1.0.8",
+    "jwt-decode": "^3.1.2",
+    "next": "13.4.19",
+    "next-redux-wrapper": "^8.1.0",
+    "nookies": "^2.5.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-quill": "^2.0.0",
+    "react-redux": "^8.1.2",
+    "react-scripts": "5.0.1",
+    "redux": "^4.2.1",
+    "redux-devtools-extension": "^2.13.9",
+    "redux-thunk": "^2.4.2",
+    "styled-components": "^6.0.7",
+    "tailwindcss": "2.2.19"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 brave version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "optionalDependencies": {
+    "typescript": "4.2.3"
+  },
+  "devDependencies": {
+    "@types/chart.js": "^2.9.37",
+    "@types/cookie": "^0.5.2",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7",
+    "autoprefixer": "10.2.5",
+    "postcss": "8.4.28",
+    "redux-logger": "^3.0.6",
+    "typescript": "^5.2.2"
+  }
+}
