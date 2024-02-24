@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { addLoan } from "../../../../redux/effects/loans/effects";
 import { useAppDispatch } from "../../../../api/config/config";
 import Admin from "../../../../layouts/Admin";
@@ -30,11 +30,13 @@ import {
     DialogTitle,
     DialogActions,
     DialogContentText, DialogContent, Dialog,
+    Card,
 } from "@mui/material";
-import {fetchCustomers} from "../../../../redux/effects/customers/effects";
-import {RootState} from "../../../../redux/reducers";
+import { fetchCustomers } from "../../../../redux/effects/customers/effects";
+import { RootState } from "../../../../redux/reducers";
 import ProcessingDialog from "../../../../components/Dialog/ProcessingDialog";
 import PageChange from "../../../../components/PageChange/PageChange";
+import { CheckCircleOutline, Close } from "@mui/icons-material";
 
 const AddLoan: React.FC = () => {
 
@@ -53,18 +55,9 @@ const AddLoan: React.FC = () => {
     const [fetchStatus, setFetchStatus] = useState("processando");
     const [openDialog, setOpenDialog] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null)
-
-
-
-    const handleOpenDialog = () => {
-        setOpenDialog(true);
-    };
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setProcessing(false);
-    };
+    const [error, setError] = useState(false)
+    const [success, setSuccess] = useState(false);
+    const [showCard, setShowCard] = useState(false);
 
     const [formData, setFormData] = useState({
         customerId: 0,
@@ -93,7 +86,7 @@ const AddLoan: React.FC = () => {
 
                 setAmortization(+monthlyAmortization);
 
-            break;
+                break;
             case 2:
                 setInterestRate(0.25)
 
@@ -105,7 +98,7 @@ const AddLoan: React.FC = () => {
 
                 setAmortization(+monthlyAmortization)
 
-            break;
+                break;
             case 3:
 
                 setInterestRate(0.30)
@@ -118,7 +111,7 @@ const AddLoan: React.FC = () => {
 
                 setAmortization(+monthlyAmortization);
 
-            break;
+                break;
         }
 
     };
@@ -162,7 +155,7 @@ const AddLoan: React.FC = () => {
 
     React.useEffect(() => {
 
-        const delay = setTimeout(()=> {
+        const delay = setTimeout(() => {
             dispatch(fetchCustomers());
             setLoading(false);
         }, 2000);
@@ -174,6 +167,7 @@ const AddLoan: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        setShowCard(true);
         setProcessing(true);
 
 
@@ -190,17 +184,22 @@ const AddLoan: React.FC = () => {
         }
         formData.interestRate = +interestRate
 
-            setOpenDialog(true);
-
         try {
             const response = await dispatch(addLoan(formData));
 
-            clearFormData();
+            if (response && response.status === 200) {
+                setError(false);
+
+                setSuccess(true);
+
+                clearFormData();
+            }
         } catch (error) {
-            setFetchStatus("Erro")
-            setError(error.response.data.message);
+            setError(true);
         } finally {
-            setOpenDialog(true);
+            setTimeout(() => {
+                setProcessing(false);
+            }, 1000);
         }
     };
 
@@ -223,11 +222,11 @@ const AddLoan: React.FC = () => {
 
     const isSaveButtonDisabled = () => {
         const disabled = formData.amount === 0 ||
-                        formData.customerId === 0 ||
-                        formData.paymentModality === ""||
-                        formData.bankGuaranteeList.length < 1 ||
-                        selectedCustomer.associatedLoan != null ||
-                        credit > totalAmount
+            formData.customerId === 0 ||
+            formData.paymentModality === "" ||
+            formData.bankGuaranteeList.length < 1 ||
+            selectedCustomer.associatedLoan != null ||
+            credit > totalAmount
 
         return disabled;
     };
@@ -287,11 +286,76 @@ const AddLoan: React.FC = () => {
         return `${formattedCurrency} MZN`;
     }
 
+    const handleCardCloseSuccess = () => {
+        setShowCard(false);
+        setSuccess(false);
+        clearFormData();
+    }
+    
+    const handleCardCloseError = () => {
+
+        setShowCard(false);
+
+        setError(false);
+    };
+
     return (
         <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
-            { loading ? (
-                <PageChange/>
-            ) : (
+            {showCard && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Semi-transparent black
+                        zIndex: 9998,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Card
+                        sx={{
+                            padding: '20px',
+                            textAlign: 'center',
+                            backgroundColor: 'whiteperl'
+                        }}
+                    >
+                        {processing ? (
+                            <>
+                                <div className="flex flex-col items-center py-4 px-9 w-full">
+                                    <CircularProgress sx={{ color: '#1E293B' }} />
+                                    <span className="px-2">Processando...</span>
+                                </div>
+
+                            </>
+                        ) : success ? (
+                            <>
+                                <CheckCircleOutline sx={{ fontSize: 40, color: 'green' }} />
+                                <p>Empréstimo criado com sucesso!</p>
+                                <button onClick={handleCardCloseSuccess} className="px-6 rounded-md py-1 mt-3 border border-stone-950">Fechar</button>
+
+                            </>
+                        ) : (
+                            <>
+
+                                <p className="flex flex-col items-center  py-4 px-3 text-red-500 ">
+                                    <span>
+                                        <Close sx={{ fontSize: 40 }} />
+                                    </span>
+                                    <span>
+                                        Ocorreu um erro na criação do Empréstimo.
+                                    </span>
+                                </p>
+                                <button onClick={handleCardCloseError} className="px-6 rounded-md py-1 mt-3 border border-stone-950">Fechar</button>
+
+                            </>
+                        )}
+                    </Card>
+                </div>
+            )}
 
             <div className="rounded-t mb-0 px-4 py-3 border-0">
                 <div className="flex flex-wrap items-center">
@@ -310,18 +374,19 @@ const AddLoan: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="relative w-full px-4 max-w-full flex-grow flex-1 text-right flex flex-row justify-end  items-center">
-                                        <span className="text-sm font-bold px-4" style={{color: selectedCustomer?.associatedLoan ? '#f10000' : '#338d00'}}>
+                                        <span className="text-sm font-bold px-4" style={{ color: selectedCustomer?.associatedLoan ? '#f10000' : '#338d00' }}>
                                             {selectedCustomer?.associatedLoan ? "Devedor" : "Não Devedor"}
                                         </span>
                                         <div
-                                            style={{backgroundColor: selectedCustomer?.associatedLoan ? '#f10000' : '#338d00',
+                                            style={{
+                                                backgroundColor: selectedCustomer?.associatedLoan ? '#f10000' : '#338d00',
                                                 borderRadius: '50%',
                                                 width: '2em',
                                                 height: '2em',
                                             }}
                                             className="flex justify-center items-center"
                                         >
-                                            </div>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -394,7 +459,7 @@ const AddLoan: React.FC = () => {
                                             variant="outlined"
                                             fullWidth
                                             value={formData.numberOfMonths!}
-                                            onChange={ handleChange }
+                                            onChange={handleChange}
                                         >
                                             <MenuItem value={1}>1</MenuItem>
                                             <MenuItem value={2}>2</MenuItem>
@@ -446,7 +511,7 @@ const AddLoan: React.FC = () => {
                                                         variant="outlined"
                                                         className="w-10/12"
                                                         value={guaranteeAmount}
-                                                        onChange={ event => setGuaranteeValue(event.target.value)}
+                                                        onChange={event => setGuaranteeValue(event.target.value)}
                                                     />
                                                     <span
                                                         style={{
@@ -518,7 +583,7 @@ const AddLoan: React.FC = () => {
                                 <Typography className="text-sm font-bold text-blueGray-800 dark:text-white">Crédito Total: <span className="px-4 py-1 bg-gray-200 text-blueGray-800 font-bold">{formatCurrency(credit)}</span></Typography>
                             </div>
                             <div className="w-12/12 h-12 px-12 grid grid-flow-col">
-                                <Typography className="text-sm font-bold text-blueGray-800 dark:text-white">Valor Total das Garantias: <span className="px-4 py-1 text-white font-bold" style={{backgroundColor: (credit > totalAmount) ? '#f10000' : '#338d00' }}>{formatCurrency(totalAmount)}</span></Typography>
+                                <Typography className="text-sm font-bold text-blueGray-800 dark:text-white">Valor Total das Garantias: <span className="px-4 py-1 text-white font-bold" style={{ backgroundColor: (credit > totalAmount) ? '#f10000' : '#338d00' }}>{formatCurrency(totalAmount)}</span></Typography>
 
                             </div>
                             <div className="py-5 px-12 items-end float-right flex ">
@@ -554,11 +619,9 @@ const AddLoan: React.FC = () => {
                             </div>
                         </form>
                     </div>
-                    <ProcessingDialog open={processing} onClose={handleCloseDialog} fetchStatus={fetchStatus} error={error} />
-
                 </div>
             </div>
-            )}
+
         </div>
     );
 };

@@ -4,7 +4,7 @@ import Admin from "../../../../layouts/Admin";
 import {encryptWithBuffer, IV_SECRET, SECRET_BUFFER, useAppDispatch} from "../../../../api/config/config";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/reducers";
-import {Alert, Autocomplete, MenuItem, Select, TextareaAutosize, TextField} from "@mui/material";
+import {Alert, Autocomplete, Card, CircularProgress, MenuItem, Select, TextareaAutosize, TextField} from "@mui/material";
 import {addLoan, fetchLoans} from "../../../../redux/effects/loans/effects";
 import {descriptions} from "jest-config";
 import {addPayment} from "../../../../redux/effects/payments/effects";
@@ -13,6 +13,7 @@ import AlertDialog from "../../../../components/Dialog/AlertDialog";
 import {fetchCustomersActiveLoans} from "../../../../redux/effects/customers/effects";
 import router from "next/router";
 import PageChange from "../../../../components/PageChange/PageChange";
+import { CheckCircleOutline, Close } from '@mui/icons-material';
 
 const Add: React.FC = () => {
     const dispatch = useAppDispatch()
@@ -22,7 +23,10 @@ const Add: React.FC = () => {
     const [formData, setFormData] = useState({ nLoan: "", description: "", amountPaid: 0 })
     const [openDialog, setOpenDialog] = useState(false);
     const [loading, setLoading] = useState(true);
-
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState(false)
+        const [success, setSuccess] = useState(false);
+        const [showCard, setShowCard] = useState(false);
 
     React.useEffect(() => {
         const delay = setTimeout(() => {
@@ -74,15 +78,28 @@ const Add: React.FC = () => {
     }
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setOpenDialog(true);
+
+        setShowCard(true);
+
+        setProcessing(true);
+
         try {
             const response = await dispatch(addPayment(formData));
+            
+            setError(false);
+
+            setSuccess(true);
 
             clearFormData();
+
         } catch (error) {
 
+            setError(true);
+
         } finally {
-            setOpenDialog(true);
+            setTimeout(() => {
+                setProcessing(false);
+            }, 1000);
         }
     }
 
@@ -100,10 +117,73 @@ const Add: React.FC = () => {
          router.push(`/microcredito/loans/${key}`);
     }
 
+    const handleCardCloseSuccess = () => {
+        setShowCard(false);
+        setSuccess(false);
+        clearFormData();
+    }
+    const handleCardCloseError = () => {
+        setShowCard(false);
+        setError(false);
+    };
 
     return (
         <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
-            {loading? (<PageChange/>) :(
+            {showCard && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Semi-transparent black
+                        zIndex: 9998,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Card
+                        sx={{
+                            padding: '20px',
+                            textAlign: 'center',
+                            backgroundColor: 'whiteperl'
+                        }}
+                    >
+                        {processing ? (
+                            <>
+                                <div className="flex flex-col items-center py-4 px-9 w-full">
+                                    <CircularProgress sx={{ color: '#1E293B' }} />
+                                    <span className="px-2">Processando...</span>
+                                </div>
+
+                            </>
+                        ) : success ? (
+                            <>
+                                <CheckCircleOutline sx={{ fontSize: 40, color: 'green' }} />
+                                <p>Pagamento efectuado com sucesso!</p>
+                                <button onClick={handleCardCloseSuccess} className="px-6 rounded-md py-1 mt-3 border border-stone-950">Fechar</button>
+
+                            </>
+                        ) : (
+                            <>
+
+                                <p className="flex flex-col items-center  py-4 px-3 text-red-500 ">
+                                    <span>
+                                        <Close sx={{ fontSize: 40 }} />
+                                    </span>
+                                    <span>
+                                        Ocorreu um erro ao efectuar o Pagamento.
+                                    </span>
+                                </p>
+                                <button onClick={handleCardCloseError} className="px-6 rounded-md py-1 mt-3 border border-stone-950">Fechar</button>
+
+                            </>
+                        )}
+                    </Card>
+                </div>
+            )}
             <div className="rounded-t mb-0   border-0">
                 <div className="flex p-4 flex-wrap items-center">
                     <div className="relative w-full px-4 max-w-full flex-grow flex-1">
@@ -192,12 +272,11 @@ const Add: React.FC = () => {
                                 </button>
                             </div>
                             </div>
-                            {openDialog && <AlertDialog open={openDialog} />}
                         </form>
                     </div>
                 </div>
             </div>
-            )}
+            
         </div>
     );
 };

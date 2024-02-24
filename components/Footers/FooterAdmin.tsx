@@ -13,6 +13,7 @@ export default function FooterAdmin() {
                 <a
                   href="https://m-chichava.github.io/portifolio "
                   className="text-blueGray-500 hover:text-blueGray-700 text-sm font-semibold py-1"
+                  target="_blank"
                 >
                   Marcos Chichava
                 </a>

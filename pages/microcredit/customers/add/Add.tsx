@@ -1,21 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Customer } from "../../../../models/customer"; // Import your Customer interface
+import { Customer } from "../../../../models/customer";
 import { addCustomer } from "../../../../redux/effects/customers/effects";
 import { useAppDispatch } from "../../../../api/config/config";
 import Admin from "../../../../layouts/Admin";
-import { Box, Button, Divider, MenuItem, Select, TextField } from "@mui/material";
+import {
+    Box,
+    Button,
+    Card,
+    CircularProgress,
+    Divider,
+    MenuItem,
+    Select,
+    TextField,
+} from "@mui/material";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import PageChange from "../../../../components/PageChange/PageChange";
-import {fetchLoans} from "../../../../redux/effects/loans/effects";
+import { fetchLoans } from "../../../../redux/effects/loans/effects";
+import { CheckCircleOutline, Close, CloseFullscreen } from "@mui/icons-material";
 
 const AddCustomer: React.FC = () => {
     const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showCard, setShowCard] = useState(false);
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -40,29 +50,29 @@ const AddCustomer: React.FC = () => {
 
     const dispatch = useAppDispatch();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
+        setFormData((prevData) => ({
+            ...prevData,
             [name]: value,
-        });
+        }));
     };
 
     const handleDateChange = (field: string, date: Date | null) => {
-        setFormData({
-            ...formData,
+        setFormData((prevData) => ({
+            ...prevData,
             [field]: date,
-        });
+        }));
     };
-    React.useEffect(() => {
-        const delay = setTimeout(() => {
 
+    useEffect(() => {
+        const delay = setTimeout(() => {
             setLoading(false);
         }, 3000);
 
         return () => clearTimeout(delay);
-
     }, [dispatch]);
+
     const clearFormData = () => {
         setFormData({
             fullName: "",
@@ -84,25 +94,24 @@ const AddCustomer: React.FC = () => {
             block: "",
             neighborhood: "",
         });
-    }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        setShowCard(true);
         setProcessing(true);
 
         try {
             const response = await dispatch(addCustomer(formData));
 
-            if (response.status === 200) {
+            if (response && response.status === 200) {
 
                 setSuccess(true);
                 setError(false);
 
-                // Clear the form data
-                clearFormData()
-            } else {
-                setError(true);
-            }
+                clearFormData();
+            } 
         } catch (error) {
             setError(true);
         } finally {
@@ -112,9 +121,72 @@ const AddCustomer: React.FC = () => {
         }
     };
 
+    const handleCardCloseSuccess = () => {
+        setSuccess(false);
+        clearFormData();
+    }
+    const handleCardCloseError = () => {
+        setShowCard(false);
+        setError(false);
+    };
+
     return (
         <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded">
-            {loading? (<PageChange/>):(
+            {showCard && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Semi-transparent black
+                        zIndex: 9998,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Card
+                        sx={{
+                            padding: '20px',
+                            textAlign: 'center',
+                            backgroundColor: 'whiteperl'
+                        }}
+                    >
+                        {processing ? (
+                            <>
+                                <div className="flex flex-col items-center py-4 px-9 w-full">
+                                    <CircularProgress sx={{ color: '#1E293B' }} />
+                                    <span className="px-2">Processando...</span>
+                                </div>
+
+                            </>
+                        ) : success ? (
+                            <>
+                                <CheckCircleOutline sx={{ fontSize: 40, color: 'green' }} />
+                                <p>Cliente adicionado com sucesso!</p>
+                                <button onClick={handleCardCloseSuccess} className="px-6 rounded-md py-1 mt-3 border border-stone-950">Fechar</button>
+
+                            </>
+                        ) : (
+                            <>
+
+                                <p className="flex flex-col items-center  py-4 px-3 text-red-500 ">
+                                    <span>
+                                        <Close sx={{ fontSize: 40 }} />
+                                    </span>
+                                    <span>
+                                        Ocorreu um erro na adição do novo cliente.
+                                    </span>
+                                </p>
+                                <button onClick={handleCardCloseError} className="px-6 rounded-md py-1 mt-3 border border-stone-950">Fechar</button>
+
+                            </>
+                        )}
+                    </Card>
+                </div>
+            )}
             <div className="rounded-t mb-0 px-4 py-3 border-0">
                 <div className="flex flex-wrap items-center">
                     <div className="relative w-full px-4 max-w-full flex-grow flex-1">
@@ -189,7 +261,7 @@ const AddCustomer: React.FC = () => {
 
                                     </div>
                                     <div className="flex py-2 flex-wrap">
-                                            <div className="relative w-full pr-4 max-w-full flex-grow flex-1">
+                                        <div className="relative w-full pr-4 max-w-full flex-grow flex-1">
                                             <label htmlFor="idNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Número de Identificação:</label>
                                             <TextField
                                                 id="idNumber"
@@ -379,23 +451,29 @@ const AddCustomer: React.FC = () => {
                                             />
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                             <div className="py-5 items-end float-right flex ">
-                                <button onClick={() => clearFormData()} type="button" className="bg-red-500 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
-                                >Limpar
+                                <button
+                                    onClick={() => clearFormData()}
+                                    type="button"
+                                    className="bg-red-500 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
+                                >
+                                    Limpar
                                 </button>
 
                                 <button
-                                    type="submit" className="bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
-                                >Salvar
+                                    type="submit"
+                                    className="bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
+                                >
+                                    Salvar
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            )}
         </div>
     );
 };

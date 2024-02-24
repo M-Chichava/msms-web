@@ -16,18 +16,22 @@ import {
 import {DebtorCustomer} from "../../../models/debtorCustomer";
 
 export const addCustomer = (formData: any) => async (dispatch: Dispatch<actionType>) => {
+    
     try {
-        const response = await axios.post(`${API_URL}/customers/Create`, formData, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('userToken')}`,
-                'Content-Type': 'application/json',
-            },
-        });
+    const response =  await axios.post(`${API_URL}/customers/Create`, formData, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('userToken')}`,
+            'Content-Type': 'application/json',
+        },
+    });
+           
         const addedCustomer: Customer = response.data;
         dispatch(addCustomerSuccess(addedCustomer));
+
+        return response;
     } catch (error) {
-        if (error.response) {
-            const status = error.response.status;
+        if (error.isAxiosError && error.response) {
+            const status = error.response.data.statusCode;
             switch (status) {
                 case 400:
                     dispatch(addCustomerError('Bad Request'));
@@ -39,11 +43,17 @@ export const addCustomer = (formData: any) => async (dispatch: Dispatch<actionTy
                     dispatch(addCustomerError('Internal Server Error'));
                     break;
                 default:
-                    dispatch(addCustomerError('An error occurred'));
+             
             }
+            return error
         } else {
+            // Handle other types of errors (e.g., network error)
+            console.error('Network error or unexpected issue:', error);
             dispatch(addCustomerError('Network Error'));
         }
+
+        // If an error occurs, you can choose to return null, throw an exception, or handle it as needed.
+       
     }
 };
 

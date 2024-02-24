@@ -1,3 +1,4 @@
+import { addPaymentError } from '../../actions/payments/creators';
 import { Dispatch } from 'redux';
 import axios from 'axios';
 import { actionType } from "../../actions/payments/types";
@@ -54,8 +55,27 @@ export const addPayment = (formData: any) => async (dispatch: Dispatch<actionTyp
         });
         const addedPayment: Payment = response.data;
         dispatch(addPaymentSuccess(addedPayment));
+        return response;
     } catch (error) {
-        // Trate os erros de forma apropriada
+        if (error.isAxiosError && error.response) {
+            const status = error.response.data.statusCode;
+            switch (status) {
+                case 400:
+                    dispatch(addPaymentError('Bad Request'));
+                    break;
+                case 404:
+                    dispatch(addPaymentError('Not Found'));
+                    break;
+                case 500:
+                    dispatch(addPaymentError('Internal Server Error'));
+                    break;
+                default:
+                    dispatch(addPaymentError('An error occurred'));
+            }
+        } else {
+            dispatch(addPaymentError('Network Error'));
+        }
+        return error
     }
 };
 

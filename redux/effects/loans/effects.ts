@@ -21,10 +21,14 @@ export const addLoan = (formData: any) => async (dispatch: Dispatch<actionType>)
             },
         });
         const addedLoan: Loan = response.data;
+
         dispatch(addLoanSuccess(addedLoan));
+        
+        return response;
+
     } catch (error) {
-        if (error.response) {
-            const status = error.response.status;
+        if (error.isAxiosError && error.response) {
+            const status = error.response.data.statusCode;
             switch (status) {
                 case 400:
                     dispatch(addLoanError('Bad Request'));
@@ -41,6 +45,7 @@ export const addLoan = (formData: any) => async (dispatch: Dispatch<actionType>)
         } else {
             dispatch(addLoanError('Network Error'));
         }
+        return error
     }
 };
 
